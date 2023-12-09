@@ -27,6 +27,7 @@ class TesttheHBNBPrompt(unittest.TestCase):
             self.assertFalse(HBNBCommand().onecmd(""))
             self.assertEqual("", output.getvalue().strip())
 
+
 class TestHBNBCommandEntryPoint(unittest.TestCase):
     """testing the entry point of the command interpreter containing
         EOF, quit, create, show, all, destroy, and update commands"""

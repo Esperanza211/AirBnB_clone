@@ -6,7 +6,6 @@ from datetime import datetime
 import models
 
 
-
 class BaseModel:
     """ BaseModel class """
 
@@ -42,12 +41,10 @@ class BaseModel:
         models.storage.save()
 
     def to_dict(self):
-
         """Returns a dictionary that contains all
         keys/values of the instance"""
         my_dict = self.__dict__.copy()
         my_dict['updated_at'] = self.updated_at.isoformat()
         my_dict['created_at'] = self.created_at.isoformat()
         my_dict['__class__'] = self.__class__.__name__
-
-    return my_dict
+        return my_dict

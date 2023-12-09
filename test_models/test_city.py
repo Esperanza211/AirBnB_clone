@@ -4,7 +4,8 @@
 import unittest
 from models.city import City
 from datetime import datetime
-
+import os
+import uuid
 
 
 class TestCity(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestCity(unittest.TestCase):
         """Setup the unittest"""
         cls.city = City()
         cls.city.state_id = str(uuid.uuid4())
-        cls.city.name = "St. Petesburg"
+        cls.city.name = "St. Petersburg"
 
     @classmethod
     def tearDownClass(cls):
