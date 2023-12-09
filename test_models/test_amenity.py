@@ -1,27 +1,29 @@
 #!/usr/bin/python3
-""" unit test for Amenity """
+"""testing theamenity class"""
+
 import unittest
 from models.amenity import Amenity
 from datetime import datetime
 
 
-class CityTestCase(unittest.TestCase):
-    """ class for amenity test """
+class TestingAmenity(unittest.TestCase):
+    """
+    testing the class amenity if it exists
+    with its attributes and checking its type
+    """
 
-    def test_amenity(self):
-        """existince"""
-        new = Amenity()
-        self.assertTrue(hasattr(new, "id"))
-        self.assertTrue(hasattr(new, "created_at"))
-        self.assertTrue(hasattr(new, "updated_at"))
-        self.assertTrue(hasattr(new, "name"))
+    def testamenity(self):
+        theamenity = Amenity()
+        self.assertTrue(hasattr(theamenity, "name"))
+        self.assertTrue(hasattr(theamenity, "id"))
+        self.assertTrue(hasattr(theamenity, "created_at"))
+        self.assertTrue(hasattr(theamenity, "updated_at"))
 
-        """type test"""
-        self.assertIsInstance(new.id, str)
-        self.assertIsInstance(new.created_at, datetime)
-        self.assertIsInstance(new.updated_at, datetime)
-        self.assertIsInstance(new.name, str)
+        self.assertIsInstance(theamenity.name, str)
+        self.assertIsInstance(theamenity.id, str)
+        self.assertIsInstance(theamenity.created_at, datetime)
+        self.assertIsInstance(theamenity.updated_at, datetime)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
