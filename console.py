@@ -19,7 +19,6 @@ from uuid import uuid4
 """ HBNBCommand class for cmd moudule """
 
 
-
 class HBNBCommand(cmd.Cmd):
     """Defines the HolbertonBnB command interpreter.
     Attributes:
@@ -235,53 +234,25 @@ command to retrieve the number of instances of a class
         print(c)
 
     def default(self, line):
-        """
-        called on an input line when the command prefix is not recognized
-        """
-        if line:
-            class_name = line.split(".", 1)[0]
-            _cmd = line.split(".", 1)[1]
-            if _cmd in ["all", "all()", "count", "count()"]:
-                if _cmd.endswith('()'):
-                    _cmd = _cmd[:-2]
-                meth = f'do_{_cmd}'
-                if hasattr(self, meth) and callable(getattr(self, meth)):
-                    method = getattr(self, meth)
-                    method(class_name)
-            id_start = _cmd.find("(")
-            cmd_name = _cmd[:id_start]
-            if cmd_name in ["show", "destroy"] and _cmd.endswith(")"):
-                id_end = _cmd.rfind(")")
-                id = _cmd[id_start + 1:id_end].strip("\"")
-                meth = f'do_{cmd_name}'
-                if hasattr(self, meth) and callable(getattr(self, meth)):
-                    method = getattr(self, meth)
-                    method(f"{class_name} {id}")
-            if cmd_name == "update" and _cmd.endswith(")"):
-                meth = f'do_update'
-                parts = _cmd[len("update("):-1].split(", ", 1)
-                if parts[1].startswith("{") and parts[1].endswith("}"):
-                    attr_dict = ast.literal_eval(parts[1])
-                    id = parts[0].strip('\"')
-                    for key, value in attr_dict.items():
-                        method = getattr(self, meth)
-                        method(f"{class_name} {id} {key} {value}")
-                else:
-                    parts = _cmd[len("update("):-1].split(", ")
-                    if len(parts) == 0:
-                        args = ""
-                    if len(parts) >= 1:
-                        id = parts[0].strip('\"')
-                        args = f"{id}"
-                    if len(parts) >= 2:
-                        field = parts[1].strip('\"')
-                        args = f"{id} {field}"
-                    if len(parts) == 3:
-                        value = parts[2].strip('\"')
-                        args = f"{id} {field} {value}"
-                    if hasattr(self, meth) and callable(getattr(self, meth)):
-                        method = getattr(self, meth)
-                        method(f"{class_name} {args}")
+        """Default behavior for cmd module when input is invalid"""
+        linedict = {
+            "all": self.do_all,
+            "show": self.do_show,
+            "destroy": self.do_destroy,
+            "count": self.do_count,
+            "update": self.do_update
+        }
+        match = re.search(r"\.", line)
+        if match is not None:
+            linel = [line[:match.span()[0]], line[match.span()[1]:]]
+            match = re.search(r"\((.*?)\)", linel[1])
+            if match is not None:
+                command = [linel[1][:match.span()[0]], match.group()[1:-1]]
+                if command[0] in linedict.keys():
+                    call = "{} {}".format(linel[0], command[1])
+                    return linedict[command[0]](call)
+        print("*** Unknown syntax: {}".format(line))
+        return False
 
 
 if __name__ == '__main__':
