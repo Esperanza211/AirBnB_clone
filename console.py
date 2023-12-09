@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-
-"""
-Import necessary modules
-"""
+""" import necessary modules """
 
 import cmd
 import os
@@ -19,23 +16,14 @@ from models.place import Place
 from models.review import Review
 from models.engine.file_storage import FileStorage
 from uuid import uuid4
-
-class_home = {
-    "BaseModel": BaseModel,
-    "User": User,
-    "Place": Place,
-    "Amenity": Amenity,
-    "City": City,
-    "Review": Review,
-    "State": State
-}
+""" HBNBCommand class for cmd moudule """
 
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb)"
 
     def do_EOF(self, line):
-        "Signal to exit the program using CTRL+D"
+        "signal to exit the program using CTRL+D"
         return True
 
     def do_quit(self, line):
@@ -43,24 +31,26 @@ class HBNBCommand(cmd.Cmd):
         return True
 
     def emptyline(self):
-        """Overwriting the emptyline method"""
-        return False
+        """ this method that is called when an empty line is entered """
+        pass
 
     def do_create(self, line):
-        """Creates a new instance of a class"""
-        if line:
-            try:
-                glo_cls = globals().get(line, None)
-                obj = glo_cls()
-                obj.save()
-                print(obj.id)  # print the id
-            except Exception:
-                print("** class doesn't exist **")
-        else:
+        """create <class>\ncreate a new instance"""
+        if len(line.split()) != 1:
             print("** class name missing **")
+            return
+        Class = line.split()[0]
+        Class = globals().get(Class)
+        if Class and issubclass(Class, BaseModel):
+            my_model = Class()
+            my_model.save()
+            print(my_model.id)
+        else:
+            print("** class doesn't exist **")
 
     def do_show(self, line):
-        """Show <class> <instance id>\nShows the class created"""
+        """show <class> <instance id>\nshows the class created
+        """
         if not line:
             print("** class name missing **")
             return
@@ -88,23 +78,29 @@ class HBNBCommand(cmd.Cmd):
         print("** no instance found **")
 
     def do_destroy(self, line):
-        """Destroy <class> <isntance id>\nDeletes an inst of the class & id"""
+        """destroy <class> <isntance id>
+deletes an instance based on the class name and id
+(save the change into the JSON file)"""
         parts = line.split()
+
         if len(parts) < 1:
             print("** class name missing **")
             return
         class_name = parts[0]
         obj_id = parts[1] if len(parts) > 1 else None
+
         Class = globals().get(class_name)
         if not Class or not issubclass(Class, BaseModel):
             print("** class doesn't exist **")
             return
+
         if not obj_id:
             print("** instance id missing **")
             return
         all_obj = {}
         search_id = f"{class_name}.{obj_id}"
         fileName = FileStorage._FileStorage__file_path
+
         if os.path.exists(fileName) and os.path.isfile(fileName):
             with open(fileName, "r") as file:
                 all_obj = json.load(file)
@@ -120,28 +116,44 @@ class HBNBCommand(cmd.Cmd):
         print("** no instance found **")
 
     def do_all(self, line):
-        """Print all instances in string representation"""
-        objects = []
-        if line == "":
-            print([str(value) for key, value in storage.all().items()])
-        else:
-            st = line.split(" ")
-            if st[0] not in class_home:
+        """
+        all or all <class>
+all : show all instances created for all classes
+all <class> : show all instances for specific class
+
+        """
+        if line:
+            Class = line.split()[0]
+            Class = globals().get(Class)
+            if not Class or not issubclass(Class, BaseModel):
                 print("** class doesn't exist **")
-            else:
-                for key, value in storage.all().items():
-                    clas = key.split(".")
-                    if clas[0] == st[0]:
-                        objects.append(str(value))
-                print(objects)
+                return
+        all_obj = {}
+        fileName = FileStorage._FileStorage__file_path
+        if os.path.exists(fileName) and os.path.isfile(fileName):
+            with open(fileName, 'r') as file:
+                all_obj = json.load(file)
+        print("[", end='')
+        is_first = True
+        for key, value in all_obj.items():
+            class_name, obj_id = key.split(".")
+            obj_dict = value
+            obj_dict.pop('__class__', None)
+            if line and line.split()[0] != class_name:
+                continue
+            if not is_first:
+                print(", ", end='')
+            print(f"\"[{class_name}] ({obj_id}) {obj_dict}\"", end='')
+            is_first = False
+        print("]")
 
     def do_update(self, line):
         """
         Usage : update <class> <id> <attribute name> <attribute value>
-        Usage : <class name>.update(<id>, <attribute name>, <attribute value>)
-        Usage : <class name>.update(<id>, <dictionary representation>)
-        Updates an instance based on the class name
-        and id by adding or updating attribute
+Usage : <class name>.update(<id>, <attribute name>, <attribute value>)
+Usage : <class name>.update(<id>, <dictionary representation>)
+Updates an instance based on the class name
+and id by adding or updating attribute
         """
         if not line:
             print("** class name missing **")
@@ -189,15 +201,73 @@ class HBNBCommand(cmd.Cmd):
             json.dump(all_obj, file)
 
     def do_count(self, line):
-        """Print the count all class instances"""
-        kclass = globals().get(line, None)
-        if kclass is None:
-            print("** class doesn't exist **")
-            return
-        count = 0
-        for obj in storage.all().values():
-            if obj.__class__.__name__ == line:
-                count += 1
-        print(count)
+        """
+        Usage : <class name>.count().
+command to retrieve the number of instances of a class
+        """
+        if line:
+            ClassName = line.split()[0]
+            Class = globals().get(ClassName)
+            if not Class or not issubclass(Class, BaseModel):
+                print("** class doesn't exist **")
+                return
+        objects = FileStorage._FileStorage__objects
+        c = 0
+        for key, value in objects.items():
+            Class_Name = key.split(".")[0]
+            if Class_Name == ClassName:
+                c += 1
+        print(c)
 
-    def default(self)
+    def default(self, line):
+        """
+        called on an input line when the command prefix is not recognized
+        """
+        if line:
+            class_name = line.split(".", 1)[0]
+            _cmd = line.split(".", 1)[1]
+            if _cmd in ["all", "all()", "count", "count()"]:
+                if _cmd.endswith('()'):
+                    _cmd = _cmd[:-2]
+                meth = f'do_{_cmd}'
+                if hasattr(self, meth) and callable(getattr(self, meth)):
+                    method = getattr(self, meth)
+                    method(class_name)
+            id_start = _cmd.find("(")
+            cmd_name = _cmd[:id_start]
+            if cmd_name in ["show", "destroy"] and _cmd.endswith(")"):
+                id_end = _cmd.rfind(")")
+                id = _cmd[id_start + 1:id_end].strip("\"")
+                meth = f'do_{cmd_name}'
+                if hasattr(self, meth) and callable(getattr(self, meth)):
+                    method = getattr(self, meth)
+                    method(f"{class_name} {id}")
+            if cmd_name == "update" and _cmd.endswith(")"):
+                meth = f'do_update'
+                parts = _cmd[len("update("):-1].split(", ", 1)
+                if parts[1].startswith("{") and parts[1].endswith("}"):
+                    attr_dict = ast.literal_eval(parts[1])
+                    id = parts[0].strip('\"')
+                    for key, value in attr_dict.items():
+                        method = getattr(self, meth)
+                        method(f"{class_name} {id} {key} {value}")
+                else:
+                    parts = _cmd[len("update("):-1].split(", ")
+                    if len(parts) == 0:
+                        args = ""
+                    if len(parts) >= 1:
+                        id = parts[0].strip('\"')
+                        args = f"{id}"
+                    if len(parts) >= 2:
+                        field = parts[1].strip('\"')
+                        args = f"{id} {field}"
+                    if len(parts) == 3:
+                        value = parts[2].strip('\"')
+                        args = f"{id} {field} {value}"
+                    if hasattr(self, meth) and callable(getattr(self, meth)):
+                        method = getattr(self, meth)
+                        method(f"{class_name} {args}")
+
+
+if __name__ == '__main__':
+    HBNBCommand().cmdloop()
