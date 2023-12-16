@@ -1,1 +1,1 @@
-web staic
+web_static
